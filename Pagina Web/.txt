@@ -1,0 +1,7 @@
+apiKey: "AIzaSyCECR0whwr4quAqB3xYpZa_u-kyKCB9l5E",
+            authDomain: "inversiones-cf8d9.firebaseapp.com",
+            databaseURL: "https://inversiones-cf8d9-default-rtdb.firebaseio.com", // 🟢 Asegúrate de añadir tu URL de RTDB
+            projectId: "inversiones-cf8d9",
+            storageBucket: "inversiones-cf8d9.firebasestorage.app",
+            messagingSenderId: "199869793725",
+            appId: "1:199869793725:web:6620015578678e46d73ed4"

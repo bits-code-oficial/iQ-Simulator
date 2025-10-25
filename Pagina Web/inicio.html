@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iQ Simulator - Inversiones Seguras</title>
+
+    <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/dashboard_styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        .main-container-history {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .history-area {
+            background-color: var(--bg-dark-secondary);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .history-title {
+            color: var(--text-color-light);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: 80px 100px 100px 1fr;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-win {
+            color: var(--success-color);
+        }
+
+        .history-loss {
+            color: var(--error-color);
+        }
+
+        .history-amount,
+        .history-profit {
+            font-weight: 600;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: var(--text-color-dim);
+            padding: 10px 0;
+        }
+
+        .ma-indicators {
+            display: inline-block;
+            margin-left: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        #trendNotification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+            text-align: center;
+        }
+
+        /* ➡️ NUEVO: Controles de Zoom sobre el Gráfico */
+        .chart-area-wrapper {
+            position: relative;
+            /* Asegura que el zoom sea relativo a este contenedor */
+        }
+
+        .chart-controls-inner {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 10;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 4px;
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .chart-controls-inner button {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color-light);
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .chart-controls-inner button:hover {
+            background-color: var(--bg-dark-tertiary);
+        }
+
+        /* ➡️ NUEVO: Contenedor de Toasts (Notificaciones de Operación) */
+        #toastContainer {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column-reverse;
+            /* Apilar de abajo hacia arriba */
+            gap: 10px;
+            max-height: 90%;
+            overflow-y: hidden;
+        }
+
+        .trade-toast {
+            padding: 10px 15px;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 1;
+            transition: opacity 0.5s, transform 0.5s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+            min-width: 250px;
+        }
+
+        .toast-win {
+            background-color: var(--success-color-dark);
+        }
+
+        .toast-loss {
+            background-color: var(--error-color-dark);
+        }
+
+        .toast-info {
+            background-color: var(--primary-color);
+        }
+    </style>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+        // ⚠️ CONFIGURACIÓN DE TU PROYECTO FIREBASE ⚠️
+        const firebaseConfig = {
+            apiKey: "AIzaSyCECR0whwr4quAqB3xYpZa_u-kyKCB9l5E",
+            authDomain: "inversiones-cf8d9.firebaseapp.com",
+            databaseURL: "https://inversiones-cf8d9-default-rtdb.firebaseio.com",
+            projectId: "inversiones-cf8d9",
+            storageBucket: "inversiones-cf8d9.firebasestorage.app",
+            messagingSenderId: "199869793725",
+            appId: "1:199869793725:web:6620015578678e46d73ed4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        window.auth = auth;
+        window.database = database;
+    </script>
+</head>
+
+<body class="dark-theme">
+
+    <header class="trading-header">
+        <div class="header-content">
+
+            <div class="header-left">
+                <h2 class="h2 logo-text">iQ Simulator</h2>
+                <div class="asset-selector">
+                    <span class="asset-name">EUR/USD</span>
+                    <span class="asset-type">Turbo</span>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <span class="balance-display">Saldo: <b id="userBalance" data-balance="0.00">Bs 0.00</b></span>
+                <button id="withdrawBtn" class="btn btn-withdraw">Solicitar Retiro</button>
+            </div>
+
+            <div class="header-right">
+                <span id="userGreeting" style="margin-right: 15px;"></span>
+                <button id="logoutBtn" class="btn btn-outline-light">Cerrar Sesión</button>
+            </div>
+
+        </div>
+    </header>
+
+
+    <main>
+        <div class="main-trading-area">
+
+            <div class="chart-container-full">
+                <div class="chart-header">
+                    <h1 class="h1">EUR/USD - Tasa de Cambio Simulada</h1>
+
+                    <div class="ma-indicators">
+                        <span style="color: yellow; margin-right: 15px;">MA Rápida (10)</span>
+                        <span style="color: rgb(255, 99, 132);">MA Lenta (50)</span>
+                    </div>
+
+                    <div class="time-filters">
+                        <button class="filter-btn active">1m</button>
+                        <button class="filter-btn">5m</button>
+                        <button class="filter-btn">1h</button>
+                        <button class="filter-btn">1D</button>
+                    </div>
+                </div>
+
+                <div class="chart-area-wrapper">
+                    <canvas id="tickerChart"></canvas>
+
+                    <div class="chart-controls-inner">
+                        <button id="zoomOutBtn" title="Alejar">- Zoom</button>
+                        <button id="zoomInBtn" title="Acercar">+ Zoom</button>
+                    </div>
+                    <div id="toastContainer">
+                    </div>
+                </div>
+            </div>
+
+            <div class="trading-panel-right">
+                <h3 class="panel-title">Nueva Operación</h3>
+
+                <div id="probabilityDisplay" class="probability-display">
+                    <p class="prob-title">Probabilidad de Ganar (50/50)</p>
+                    <div class="probability-item">
+                        <span>Retorno Estimado:</span>
+                        <span id="estimatedReturn">Ganancia Fija + Bs 0.50 a 1.50</span>
+                    </div>
+                </div>
+
+                <form id="tradeForm">
+
+                    <div class="form-group-amount">
+                        <label for="tradeAmount">Monto a Invertir (BOB)</label>
+                        <input type="number" id="tradeAmount" min="1" step="0.01" placeholder="Monto (mínimo 1.00)"
+                            required>
+                    </div>
+
+                    <div class="form-group-time">
+                        <label for="tradeTime">Tiempo de Expiración</label>
+                        <select id="tradeTime" required>
+                            <option value="30">30 Segundos</option>
+                            <option value="60" selected>1 Minuto</option>
+                            <option value="180">3 Minutos</option>
+                            <option value="300">5 Minutos</option>
+                        </select>
+                    </div>
+
+                    <div class="trade-buttons">
+                        <button type="submit" data-type="call" class="btn trade-btn call-btn">
+                            Call (Sube) ⬆️
+                        </button>
+                        <button type="submit" data-type="put" class="btn trade-btn put-btn">
+                            Put (Baja) ⬇️
+                        </button>
+                    </div>
+                    <p id="tradeFeedback" class="feedback-message"></p>
+                </form>
+
+            </div>
+
+        </div>
+
+        <div id="trendNotification" class="feedback-message" style="display: none;"></div>
+
+    </main>
+
+    <div class="main-container-history">
+        <div class="history-area">
+            <h2 class="h2 history-title">Historial de Operaciones (Últimas 10)</h2>
+            <ul id="historyList" class="history-list">
+                <li class="placeholder">Cargando historial...</li>
+            </ul>
+        </div>
+    </div>
+
+
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 class="h2">Solicitud de Retiro por WhatsApp</h2>
+            <p>Ingresa el monto y haz clic en "Continuar" para generar el mensaje de solicitud en WhatsApp.</p>
+            <form id="withdrawForm">
+                <div class="form-group">
+                    <label for="withdrawAmount">Monto a Retirar (BOB)</label>
+                    <input type="number" id="withdrawAmount" min="1" step="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-secondary btn-submit">Continuar a WhatsApp</button>
+            </form>
+            <p id="withdrawFeedback" class="feedback-message"></p>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        import { ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+        // Obtener instancias globales
+        const authInstance = window.auth;
+        const dbInstance = window.database;
+
+        // Referencias al DOM
+        const userGreeting = document.getElementById('userGreeting');
+        const userBalanceSpan = document.getElementById('userBalance');
+        const tradeForm = document.getElementById('tradeForm');
+        const tradeFeedback = document.getElementById('tradeFeedback'); // Usado solo para el feedback INICIAL
+        const tradeTimeSelect = document.getElementById('tradeTime');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const withdrawBtn = document.getElementById('withdrawBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const withdrawModal = document.getElementById('withdrawModal');
+        const withdrawForm = document.getElementById('withdrawForm');
+        const withdrawFeedback = document.getElementById('withdrawFeedback');
+        const historyList = document.getElementById('historyList');
+        const trendNotificationElement = document.getElementById('trendNotification');
+        const toastContainer = document.getElementById('toastContainer'); // ➡️ Nuevo: Contenedor de Toasts
+
+
+        let currentUserId = null;
+        let currentUserName = null;
+        let myChart = null;
+        let currentZoomLevel = 5;
+        let chartData = [];
+        const initialValue = 10;
+        const dataPoints = 150;
+
+        const maPeriodFast = 10;
+        const maPeriodSlow = 50;
+
+        let currentTrend = 'Neutral';
+        const trendBonusChance = 0.70;
+
+        // Función para calcular la Media Móvil Simple (SMA)
+        const calculateSMA = (data, period) => {
+            const sma = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    sma.push(null);
+                } else {
+                    const slice = data.slice(i - period + 1, i + 1);
+                    const sum = slice.reduce((a, b) => a + b, 0);
+                    sma.push(sum / period);
+                }
+            }
+            return sma;
+        };
+
+
+        // Determinar la Tendencia y Notificar (Flotante Central)
+        const determineAndNotifyTrend = (maFastData, maSlowData) => {
+            const latestFastMA = maFastData[maFastData.length - 1];
+            const latestSlowMA = maSlowData[maSlowData.length - 1];
+
+            if (latestFastMA === null || latestSlowMA === null) {
+                currentTrend = 'Neutral';
+                trendNotificationElement.style.display = 'none';
+                return;
+            }
+
+            if (latestFastMA > latestSlowMA) {
+                currentTrend = 'Alcista';
+                trendNotificationElement.textContent = '🟢 ¡ALERTA! Hay una TENDENCIA ALCISTA.';
+                trendNotificationElement.style.backgroundColor = 'var(--success-color-dark)';
+                trendNotificationElement.style.display = 'block';
+            } else if (latestFastMA < latestSlowMA) {
+                currentTrend = 'Bajista';
+                trendNotificationElement.textContent = '🔴 ¡ALERTA! Hay una TENDENCIA BAJISTA.';
+                trendNotificationElement.style.backgroundColor = 'var(--error-color-dark)';
+                trendNotificationElement.style.display = 'block';
+            } else {
+                currentTrend = 'Neutral';
+                trendNotificationElement.style.display = 'none';
+            }
+        };
+
+        // ➡️ NUEVA FUNCIÓN: Mostrar Notificación de Operación (Toast)
+        const showTradeToast = (message, type) => {
+            const toast = document.createElement('div');
+            toast.className = `trade-toast toast-${type}`;
+            toast.textContent = message;
+
+            // Añadir al contenedor (se apilará debido a flex-direction: column-reverse)
+            toastContainer.appendChild(toast);
+
+            // Eliminar el toast después de 5 segundos
+            setTimeout(() => {
+                // Iniciar la transición de opacidad antes de la eliminación
+                toast.style.opacity = '0';
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                });
+            }, 5000);
+
+            // Limitar la cantidad de toasts para evitar desbordamiento (opcional)
+            const maxToasts = 5;
+            while (toastContainer.children.length > maxToasts) {
+                // Eliminar el toast más antiguo (el que está más abajo en la lista HTML, que es el más arriba visualmente)
+                toastContainer.removeChild(toastContainer.children[0]);
+            }
+        };
+        // ⬅️ FIN NUEVA FUNCIÓN
+
+        // Formateo de Dinero
+        const formatMoney = (amount) => {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'BOB'
+            }).format(amount).replace('BOB', 'Bs');
+        };
+
+        // ==================================
+        // LÓGICA DE TRADING Y BALANCE
+        // ==================================
+
+        const updateProbabilityDisplay = () => {
+            const time = parseInt(tradeTimeSelect.value);
+            const minutes = time >= 60 ? `${time / 60} min` : `${time} seg`;
+            document.querySelector('.prob-title').textContent = `Probabilidad de Ganar para ${minutes} (50/50)`;
+        };
+
+        tradeTimeSelect.addEventListener('change', updateProbabilityDisplay);
+
+
+        // FUNCIÓN DE GANANCIA ALEATORIA (0.50 a 1.50 BOB)
+        const generateRandomProfit = () => {
+            const randomValue = Math.random() * (1.50 - 0.50);
+            return (randomValue + 0.50);
+        }
+
+        const updateBalance = async (amount, feedbackElement) => {
+            if (!currentUserId) {
+                if (feedbackElement) feedbackElement.textContent = "Error: Usuario no autenticado.";
+                return false;
+            }
+
+            const userRef = ref(dbInstance, 'users/' + currentUserId);
+
+            try {
+                const currentBalance = parseFloat(userBalanceSpan.dataset.balance);
+                const newBalance = currentBalance + amount;
+
+                if (newBalance < 0) {
+                    if (feedbackElement) feedbackElement.textContent = `Error: Fondos insuficientes. Balance actual: ${formatMoney(currentBalance)}.`;
+                    return false;
+                }
+
+                await update(userRef, { money: newBalance.toFixed(2) });
+
+                // El feedbackElement (tradeFeedback) solo se usa para el mensaje de FONDOS
+                if (feedbackElement) {
+                    feedbackElement.textContent = ''; // Limpiar el feedback inicial de éxito/gasto
+                }
+                return true;
+            } catch (error) {
+                if (feedbackElement) feedbackElement.textContent = "❌ Error al procesar la solicitud.";
+                return false;
+            }
+        };
+
+        tradeForm.addEventListener('click', async (e) => {
+            if (!e.target.classList.contains('trade-btn')) return;
+            e.preventDefault();
+
+            // Feedback de "Procesando"
+            tradeFeedback.textContent = 'Procesando...';
+            tradeFeedback.style.backgroundColor = 'var(--bg-dark-tertiary)';
+
+
+            const amountInput = document.getElementById('tradeAmount');
+            const amount = parseFloat(amountInput.value);
+            const type = e.target.dataset.type;
+            const time = parseInt(tradeTimeSelect.value);
+
+            if (isNaN(amount) || amount < 1 || amount > parseFloat(userBalanceSpan.dataset.balance)) {
+                tradeFeedback.textContent = "❌ Monto/Fondos inválidos. El monto mínimo es Bs 1.00.";
+                return;
+            }
+
+            let actualWinChance = 0.50;
+            const isCallInUptrend = type === 'call' && currentTrend === 'Alcista';
+            const isPutInDowntrend = type === 'put' && currentTrend === 'Bajista';
+            let initialFeedback = '';
+
+            if (isCallInUptrend || isPutInDowntrend) {
+                actualWinChance = trendBonusChance;
+                initialFeedback = `🚀 ¡VENTAJA! Tendencia ${currentTrend} (${(actualWinChance * 100).toFixed(0)}%).`;
+            }
+
+            const deductionSuccess = await updateBalance(-amount, tradeFeedback);
+            if (!deductionSuccess) { return; }
+
+            tradeFeedback.textContent = `${initialFeedback} Inversión de ${formatMoney(amount)} (${type}) iniciada...`;
+
+
+            setTimeout(async () => {
+                const win = Math.random() < actualWinChance;
+                const randomProfit = generateRandomProfit();
+                const fixedLoss = 1.00;
+
+                let finalProfit = 0;
+                let resultText = '';
+                let toastMessage = '';
+                let toastType = '';
+
+                if (win) {
+                    const totalGain = amount + randomProfit;
+                    await updateBalance(totalGain, null);
+                    finalProfit = randomProfit;
+                    resultText = 'Ganancia';
+                    toastMessage = `🎉 ¡GANASTE! +${formatMoney(finalProfit.toFixed(2))}`;
+                    toastType = 'win';
+                } else {
+                    const amountRefund = amount - fixedLoss;
+                    await updateBalance(amountRefund, null);
+                    finalProfit = -fixedLoss;
+                    resultText = 'Pérdida';
+                    toastMessage = `😔 PERDISTE. -${formatMoney(fixedLoss.toFixed(2))}`;
+                    toastType = 'loss';
+                }
+
+                // ➡️ Mostrar la notificación dinámica
+                showTradeToast(toastMessage, toastType);
+
+                if (currentUserId) {
+                    const historyRef = ref(dbInstance, `users/${currentUserId}/history`);
+                    const tradeRecord = {
+                        amount: amount.toFixed(2),
+                        type: type,
+                        result: resultText,
+                        profit: finalProfit.toFixed(2),
+                        trend: currentTrend,
+                        winChance: (actualWinChance * 100).toFixed(0) + '%',
+                        timestamp: Date.now(),
+                    };
+                    push(historyRef, tradeRecord);
+                }
+
+                amountInput.value = '';
+                setTimeout(() => {
+                    tradeFeedback.textContent = '';
+                    tradeFeedback.style.backgroundColor = 'transparent';
+                }, 1000); // Limpiar el feedback inicial más rápido
+
+            }, 3000);
+        });
+
+
+        // ==================================
+        // GRÁFICO DINÁMICO Y ZOOM 
+        // ==================================
+
+        const generateChartData = () => {
+            chartData = [initialValue];
+            for (let i = 1; i < dataPoints; i++) {
+                let lastValue = chartData[i - 1];
+                let change = (Math.random() * 0.3) - 0.15;
+                let impulse = (Math.random() > 0.95) ? (Math.random() * 0.8) - 0.4 : 0;
+
+                let newValue = lastValue + change + impulse;
+                chartData.push(Math.max(newValue, 5));
+            }
+        }
+
+        const updateChartZoom = () => {
+            if (!myChart) return;
+
+            currentZoomLevel = Math.max(0.5, Math.min(50, currentZoomLevel));
+            const centerValue = chartData[chartData.length - 1] || initialValue;
+
+            myChart.options.scales.y.min = centerValue - (currentZoomLevel / 2);
+            myChart.options.scales.y.max = centerValue + (currentZoomLevel / 2);
+
+            myChart.update();
+        };
+
+        const createRandomChart = () => {
+            const ctx = document.getElementById('tickerChart').getContext('2d');
+            const labels = Array.from({ length: dataPoints }, (_, i) => `T${i}`);
+
+            const maFastData = calculateSMA(chartData, maPeriodFast);
+            const maSlowData = calculateSMA(chartData, maPeriodSlow);
+
+            determineAndNotifyTrend(maFastData, maSlowData);
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ticker Value (BOB)',
+                            data: chartData,
+                            borderColor: 'rgb(0, 150, 136)',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            fill: false,
+                        },
+                        {
+                            label: `MA ${maPeriodFast}`,
+                            data: maFastData,
+                            borderColor: 'rgb(255, 255, 0)',
+                            borderWidth: 1.5,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            fill: false,
+                        },
+                        {
+                            label: `MA ${maPeriodSlow}`,
+                            data: maSlowData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 1.5,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            fill: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: { label: (context) => `${context.dataset.label}: ${formatMoney(context.parsed.y)}` },
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#333',
+                            bodyColor: '#333',
+                            borderColor: '#ccc',
+                            borderWidth: 1,
+                        }
+                    },
+                    scales: {
+                        x: { display: false, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                        y: {
+                            display: true,
+                            beginAtZero: false,
+                            min: initialValue - (currentZoomLevel / 2),
+                            max: initialValue + (currentZoomLevel / 2),
+                            ticks: {
+                                callback: (value) => formatMoney(value),
+                                color: '#ccc',
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                            }
+                        }
+                    }
+                }
+            });
+            updateChartZoom();
+            updateProbabilityDisplay();
+        };
+
+        // Listeners de Zoom
+        if (zoomInBtn) zoomInBtn.addEventListener('click', () => {
+            currentZoomLevel = Math.min(50, currentZoomLevel + 2);
+            updateChartZoom();
+        });
+
+        if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => {
+            currentZoomLevel = Math.max(0.5, currentZoomLevel - 2);
+            updateChartZoom();
+        });
+
+        // Simulación de datos en tiempo real (cada 5 segundos)
+        setInterval(() => {
+            if (myChart) {
+                const lastValue = chartData[chartData.length - 1];
+
+                let change = (Math.random() * 0.3) - 0.15;
+                let impulse = (Math.random() > 0.95) ? (Math.random() * 0.8) - 0.4 : 0;
+                let newValue = lastValue + change + impulse;
+
+                chartData.shift();
+                chartData.push(Math.max(newValue, 5));
+
+                const maFastData = calculateSMA(chartData, maPeriodFast);
+                const maSlowData = calculateSMA(chartData, maPeriodSlow);
+
+                myChart.data.datasets[0].data = chartData;
+                myChart.data.datasets[1].data = maFastData;
+                myChart.data.datasets[2].data = maSlowData;
+
+                determineAndNotifyTrend(maFastData, maSlowData);
+
+                updateChartZoom();
+                updateProbabilityDisplay();
+            }
+        }, 5000);
+
+        // ==================================
+        // Lógica de Historial de Operaciones
+        // ==================================
+
+        const loadTradeHistory = (uid) => {
+            const historyRef = ref(dbInstance, `users/${uid}/history`);
+            onValue(historyRef, (snapshot) => {
+                historyList.innerHTML = '';
+                const historyData = [];
+                snapshot.forEach((childSnapshot) => {
+                    const trade = childSnapshot.val();
+                    historyData.push(trade);
+                });
+
+                if (historyData.length === 0) {
+                    historyList.innerHTML = '<li class="placeholder">Aún no hay operaciones registradas.</li>';
+                    return;
+                }
+
+                historyData.sort((a, b) => b.timestamp - a.timestamp);
+                const recentHistory = historyData.slice(0, 10);
+
+                recentHistory.forEach(trade => {
+                    const date = new Date(trade.timestamp).toLocaleString('es-ES', {
+                        hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        day: '2-digit', month: 'short'
+                    });
+
+                    const isWin = trade.result === 'Ganancia';
+                    const resultClass = isWin ? 'history-win' : 'history-loss';
+
+                    const profitValue = parseFloat(trade.profit);
+                    const profitText = profitValue >= 0
+                        ? `+${formatMoney(profitValue)}`
+                        : `${formatMoney(profitValue)}`;
+
+                    const strategyInfo = `(${trade.trend || 'Neutral'} | ${trade.winChance || '50%'})`;
+
+                    const listItem = document.createElement('li');
+                    listItem.className = `history-item ${resultClass}`;
+                    listItem.innerHTML = `
+                        <span class="history-type">${trade.type.toUpperCase()}</span>
+                        <span class="history-amount">${formatMoney(parseFloat(trade.amount))}</span>
+                        <span class="history-profit">${profitText}</span>
+                        <span class="history-time">${date} ${strategyInfo}</span>
+                    `;
+                    historyList.appendChild(listItem);
+                });
+            }, { onlyOnce: false });
+        };
+        // ==================================
+        // Fin Lógica de Historial
+        // ==================================
+
+
+        // ==================================
+        // Lógica de Modales y Autenticación
+        // ==================================
+
+        const openModal = (modal) => modal.style.display = 'flex';
+        const closeModal = (modal) => {
+            modal.style.display = 'none';
+            modal.querySelectorAll('.feedback-message').forEach(el => el.textContent = '');
+        };
+
+        if (withdrawBtn) withdrawBtn.onclick = () => openModal(withdrawModal);
+
+        if (logoutBtn) logoutBtn.addEventListener('click', () => {
+            signOut(authInstance).catch((error) => {
+                console.error("Error al cerrar sesión:", error);
+                alert("Hubo un error al cerrar la sesión.");
+            });
+        });
+
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.onclick = (e) => closeModal(e.target.closest('.modal'));
+        });
+
+
+        // Lógica del formulario de Retiro (NO RESTA EL SALDO)
+        withdrawForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputAmount = document.getElementById('withdrawAmount');
+            const amount = parseFloat(inputAmount.value);
+            const currentBalance = parseFloat(userBalanceSpan.dataset.balance);
+
+            withdrawFeedback.textContent = '';
+
+            if (isNaN(amount) || amount <= 0) {
+                withdrawFeedback.textContent = `❌ Monto inválido. Debe ser mayor a Bs 0.`;
+                return;
+            }
+            if (amount > currentBalance) {
+                withdrawFeedback.textContent = `❌ Fondos insuficientes. Saldo actual: ${formatMoney(currentBalance)}. No puedes retirar más de lo que tienes.`;
+                return;
+            }
+
+            withdrawFeedback.textContent = 'Generando solicitud de WhatsApp...';
+
+            const whatsappNumber = '59178148213';
+            const formattedAmount = amount.toFixed(2);
+
+            const message = `Quiero retirar ${formattedAmount} BOB.
+ID de usuario: ${currentUserId}
+Nombre: ${currentUserName}`;
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+            window.open(whatsappLink, '_blank');
+
+            withdrawFeedback.textContent = `✅ Solicitud de ${formatMoney(amount)} generada. Abre WhatsApp para confirmar. El saldo se descontará al procesar tu solicitud.`;
+
+            withdrawForm.reset();
+            setTimeout(() => closeModal(withdrawModal), 4000);
+        });
+
+        const setupDatabaseListener = (uid) => {
+            const userRef = ref(dbInstance, 'users/' + uid);
+            get(userRef).then((snapshot) => {
+                if (!snapshot.exists()) { set(userRef, { money: 1000.00 }); }
+            });
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                const balance = data && data.money !== undefined ? parseFloat(data.money) : 0.00;
+                userBalanceSpan.textContent = formatMoney(balance);
+                userBalanceSpan.dataset.balance = balance;
+            }, { onlyOnce: false });
+        };
+
+        onAuthStateChanged(authInstance, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                currentUserName = user.displayName || user.email.split('@')[0];
+
+                userGreeting.textContent = `Hola, ${currentUserName}`;
+                setupDatabaseListener(user.uid);
+                loadTradeHistory(user.uid);
+                generateChartData();
+                createRandomChart();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+    </script>
+
+    <script src="./assets/js/script.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

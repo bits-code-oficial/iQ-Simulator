@@ -1,0 +1,87 @@
+/* ==================================
+   Estilos específicos para Acerca de Nosotros
+   ================================== */
+
+.main {
+    /* Ajusta el padding superior e inferior de la sección principal */
+    padding-top: 50px; 
+    padding-bottom: 100px;
+}
+
+.main .h1 {
+    /* Estilos del título principal */
+    text-align: center; 
+    margin-bottom: 50px; 
+    color: var(--primary-color);
+}
+
+/* Estilo para la sección de introducción (blog-card) */
+.about-section.blog-card {
+    padding: 30px;
+    margin-bottom: 40px;
+}
+
+.about-section .blog-text {
+    font-size: 1.1em; 
+    line-height: 1.6;
+}
+
+/* Estilos de Misión y Visión usando grid */
+.blog-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.blog-grid .blog-card {
+    padding: 30px;
+}
+
+.blog-grid .h2 {
+    margin-bottom: 15px; 
+    color: var(--on-background);
+    text-align: left; /* Aseguramos la alineación en el card */
+}
+
+/* Estilos de la sección de Valores */
+.about-section.values {
+    margin-top: 50px;
+}
+
+.about-section.values .h2 {
+    text-align: center; 
+    margin-bottom: 30px;
+}
+
+.value-list {
+    display: flex;
+    justify-content: space-around;
+    list-style: none;
+    padding: 0;
+    flex-wrap: wrap; 
+}
+
+.value-list li.blog-card {
+    max-width: 30%;
+    text-align: center;
+    padding: 20px;
+    min-width: 150px; 
+    margin: 10px; /* Espaciado entre elementos en pantallas pequeñas */
+}
+
+.value-list .h3 {
+    color: var(--primary-color); 
+    margin-bottom: 10px;
+}
+
+/* Media Query para responsividad básica */
+@media (max-width: 768px) {
+    .blog-grid {
+        grid-template-columns: 1fr; /* Una sola columna en móvil */
+    }
+    .value-list li.blog-card {
+        max-width: 100%; 
+        width: 90%;
+        margin: 10px auto;
+    }
+}

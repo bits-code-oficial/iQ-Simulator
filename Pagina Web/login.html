@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - iQ Simulator</title>
+
+  <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="./assets/css/style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // ⚠️ CONFIGURACIÓN DE TU PROYECTO FIREBASE ⚠️
+    const firebaseConfig = {
+      apiKey: "AIzaSyCECR0whwr4quAqB3xYpZa_u-kyKCB9l5E",
+      authDomain: "inversiones-cf8d9.firebaseapp.com",
+      databaseURL: "https://inversiones-cf8d9-default-rtdb.firebaseio.com", // 🟢 Asegúrate de añadir tu URL de RTDB
+      projectId: "inversiones-cf8d9",
+      storageBucket: "inversiones-cf8d9.firebasestorage.app",
+      messagingSenderId: "199869793725",
+      appId: "1:199869793725:web:6620015578678e46d73ed4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    // Guardamos la instancia de auth en la ventana global para usarla en el script de lógica
+    window.firebaseAuth = getAuth(app); 
+  </script>
+
+  <style>
+    /* ================================== */
+    /* ESTILOS DE LOGIN (DARK, CURVAS, CENTRADO TOTAL) */
+    /* ================================== */
+
+    /* Variables de estilo para consistencia con el Dashboard */
+    :root {
+      --bg-dark-primary: #121212;
+      --bg-dark-secondary: #1f1f1f;
+      --bg-dark-tertiary: #2e2e2e;
+      --text-light: #f0f0f0;
+      --text-muted: #8a8a8a;
+      --border-dark: #3a3a3a;
+      --accent-color: #ff9800;
+      --success-color-dark: #009688;
+      --error-color-dark: #ff3c56;
+      --radius-lg: 12px;
+      --radius-md: 6px;
+    }
+
+    /* 1. Centrado vertical y horizontal total */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      /* Añadido para el centrado */
+      justify-content: center;
+      /* Centrado horizontal */
+      align-items: center;
+      /* Centrado vertical */
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Aplicar fondo oscuro */
+    body.dark-theme {
+      background-color: var(--bg-dark-primary);
+      color: var(--text-light);
+    }
+
+    /* El main ahora solo necesita contener la caja, ya que el body se encarga del centrado */
+    main {
+      padding: 0;
+      width: 100%;
+    }
+
+
+    /* 2. Caja del formulario con CURVAS y fondo secundario */
+    .form-box {
+      background-color: var(--bg-dark-secondary);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8);
+      padding: 40px;
+      max-width: 400px;
+      /* Reducimos el ancho para un look más limpio */
+      width: 90%;
+      margin: auto;
+      border: 1px solid var(--border-dark);
+    }
+
+    .form-box .h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--accent-color);
+      font-weight: 700;
+      border-bottom: 1px solid var(--bg-dark-tertiary);
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    /* Inputs con fondo terciario oscuro y bordes redondeados */
+    .form-group input[type="email"],
+    .form-group input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-dark-tertiary);
+      color: var(--text-light);
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent-color);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+    }
+
+    /* Botón de Ingresar */
+    .btn-submit {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background-color: var(--accent-color);
+      color: var(--bg-dark-secondary);
+      border-radius: var(--radius-md);
+      transition: background-color 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background-color: #ffb74d;
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .register-link a,
+    .forgot-password a {
+      color: var(--accent-color);
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    #feedbackMessage {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-weight: 600;
+      min-height: 20px;
+      color: white;
+    }
+
+    .error {
+      background-color: var(--error-color-dark);
+    }
+
+    .success {
+      background-color: var(--success-color-dark);
+    }
+  </style>
+</head>
+
+<body class="dark-theme">
+
+  <main>
+    <div class="container">
+
+      <div class="form-box">
+
+        <h2 class="h2">iQ Simulator - Inicia Sesión</h2>
+        <form id="loginForm">
+
+          <div class="form-group">
+            <label for="email">Correo Electrónico</label>
+            <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="Tu Contraseña" required>
+          </div>
+
+          <p class="forgot-password">
+            <a href="recuperar_contrasena.html">¿Olvidaste tu contraseña?</a>
+          </p>
+
+          <button type="submit" id="loginBtn" class="btn btn-primary btn-submit">
+            Ingresar
+          </button>
+
+          <div id="feedbackMessage"></div>
+
+        </form>
+
+        <p class="register-link">
+          ¿Aún no tienes cuenta? <a href="crear_cuenta.html">Regístrate aquí</a>
+        </p>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { setPersistence, signInWithEmailAndPassword, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // Obtenemos la instancia de auth del objeto window
+    const auth = window.firebaseAuth;
+
+    // Referencias al DOM
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+
+    const showMessage = (msg, isError = false) => {
+      feedbackMessage.textContent = msg;
+      feedbackMessage.className = isError ? 'error' : 'success';
+    };
+
+    const handleLogin = async (e) => {
+      e.preventDefault();
+
+      if (!auth) {
+        showMessage('❌ Error de inicialización de Firebase Auth.', true);
+        return;
+      }
+
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Ingresando...';
+      showMessage('');
+
+      try {
+        // 1. Persistencia de sesión
+        await setPersistence(auth, browserSessionPersistence);
+
+        // 2. Iniciar sesión
+        await signInWithEmailAndPassword(auth, email, password);
+
+        showMessage('✅ ¡Inicio de sesión exitoso! Redirigiendo...', false);
+
+        // 3. Redirigir al dashboard
+        setTimeout(() => {
+          window.location.href = 'inicio.html';
+        }, 1000);
+
+      } catch (error) {
+        let errorMessage = 'Error desconocido. Intenta nuevamente.';
+
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+            errorMessage = '❌ Correo o Contraseña incorrectos.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = '❌ Formato de correo inválido.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = '❌ Demasiados intentos fallidos. Inténtalo más tarde.';
+            break;
+          default:
+            console.error("Login Error:", error.message);
+            errorMessage = '❌ Error al iniciar sesión. Verifica tu conexión.';
+            break;
+        }
+
+        showMessage(errorMessage, true);
+
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Ingresar';
+      }
+    };
+
+    loginForm.addEventListener('submit', handleLogin);
+  </script>
+</body>
+
+</html>
