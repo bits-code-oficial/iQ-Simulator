@@ -24,13 +24,11 @@
             margin: 20px auto;
             padding: 0 20px;
         }
-
         .history-area {
             background-color: var(--bg-dark-secondary);
             border-radius: 8px;
             padding: 20px;
         }
-
         .history-title {
             color: var(--text-color-light);
             margin-bottom: 15px;
@@ -38,13 +36,11 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
-
         .history-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-
         .history-item {
             display: grid;
             grid-template-columns: 80px 100px 100px 1fr;
@@ -52,37 +48,20 @@
             border-bottom: 1px dashed var(--border-color);
             font-size: 0.9rem;
         }
-
         .history-item:last-child {
             border-bottom: none;
         }
-
-        .history-win {
-            color: var(--success-color);
-        }
-
-        .history-loss {
-            color: var(--error-color);
-        }
-
-        .history-amount,
-        .history-profit {
-            font-weight: 600;
-        }
-
-        .placeholder {
-            text-align: center;
-            color: var(--text-color-dim);
-            padding: 10px 0;
-        }
-
+        .history-win { color: var(--success-color); }
+        .history-loss { color: var(--error-color); }
+        .history-amount, .history-profit { font-weight: 600; }
+        .placeholder { text-align: center; color: var(--text-color-dim); padding: 10px 0; }
         .ma-indicators {
             display: inline-block;
             margin-left: 20px;
             font-size: 0.85rem;
             font-weight: 500;
         }
-
+        
         #trendNotification {
             position: fixed;
             bottom: 20px;
@@ -97,13 +76,11 @@
             min-width: 300px;
             text-align: center;
         }
-
+        
         /* ➡️ NUEVO: Controles de Zoom sobre el Gráfico */
         .chart-area-wrapper {
-            position: relative;
-            /* Asegura que el zoom sea relativo a este contenedor */
+            position: relative; /* Asegura que el zoom sea relativo a este contenedor */
         }
-
         .chart-controls-inner {
             position: absolute;
             bottom: 15px;
@@ -115,7 +92,6 @@
             display: flex;
             gap: 5px;
         }
-
         .chart-controls-inner button {
             background: none;
             border: 1px solid var(--border-color);
@@ -125,7 +101,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-
         .chart-controls-inner button:hover {
             background-color: var(--bg-dark-tertiary);
         }
@@ -137,13 +112,11 @@
             left: 10px;
             z-index: 20;
             display: flex;
-            flex-direction: column-reverse;
-            /* Apilar de abajo hacia arriba */
+            flex-direction: column-reverse; /* Apilar de abajo hacia arriba */
             gap: 10px;
             max-height: 90%;
             overflow-y: hidden;
         }
-
         .trade-toast {
             padding: 10px 15px;
             border-radius: 4px;
@@ -155,18 +128,10 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
             min-width: 250px;
         }
+        .toast-win { background-color: var(--success-color-dark); }
+        .toast-loss { background-color: var(--error-color-dark); }
+        .toast-info { background-color: var(--primary-color); }
 
-        .toast-win {
-            background-color: var(--success-color-dark);
-        }
-
-        .toast-loss {
-            background-color: var(--error-color-dark);
-        }
-
-        .toast-info {
-            background-color: var(--primary-color);
-        }
     </style>
 
 
@@ -228,12 +193,12 @@
             <div class="chart-container-full">
                 <div class="chart-header">
                     <h1 class="h1">EUR/USD - Tasa de Cambio Simulada</h1>
-
+                    
                     <div class="ma-indicators">
                         <span style="color: yellow; margin-right: 15px;">MA Rápida (10)</span>
                         <span style="color: rgb(255, 99, 132);">MA Lenta (50)</span>
                     </div>
-
+                    
                     <div class="time-filters">
                         <button class="filter-btn active">1m</button>
                         <button class="filter-btn">5m</button>
@@ -244,13 +209,14 @@
 
                 <div class="chart-area-wrapper">
                     <canvas id="tickerChart"></canvas>
-
+                    
                     <div class="chart-controls-inner">
                         <button id="zoomOutBtn" title="Alejar">- Zoom</button>
                         <button id="zoomInBtn" title="Acercar">+ Zoom</button>
                     </div>
+
                     <div id="toastContainer">
-                    </div>
+                        </div>
                 </div>
             </div>
 
@@ -258,10 +224,10 @@
                 <h3 class="panel-title">Nueva Operación</h3>
 
                 <div id="probabilityDisplay" class="probability-display">
-                    <p class="prob-title">Probabilidad de Ganar (50/50)</p>
+                    <p class="prob-title">Probabilidad de Ganar (40/60)</p>
                     <div class="probability-item">
                         <span>Retorno Estimado:</span>
-                        <span id="estimatedReturn">Ganancia Fija + Bs 0.50 a 1.50</span>
+                        <span id="estimatedReturn">Ganancia Fija + Bs 0.50 a 2.00</span>
                     </div>
                 </div>
 
@@ -297,7 +263,7 @@
             </div>
 
         </div>
-
+        
         <div id="trendNotification" class="feedback-message" style="display: none;"></div>
 
     </main>
@@ -350,24 +316,29 @@
         const withdrawModal = document.getElementById('withdrawModal');
         const withdrawForm = document.getElementById('withdrawForm');
         const withdrawFeedback = document.getElementById('withdrawFeedback');
-        const historyList = document.getElementById('historyList');
-        const trendNotificationElement = document.getElementById('trendNotification');
-        const toastContainer = document.getElementById('toastContainer'); // ➡️ Nuevo: Contenedor de Toasts
+        const historyList = document.getElementById('historyList'); 
+        const trendNotificationElement = document.getElementById('trendNotification'); 
+        const toastContainer = document.getElementById('toastContainer'); // Contenedor de Toasts
 
 
         let currentUserId = null;
         let currentUserName = null;
         let myChart = null;
-        let currentZoomLevel = 5;
+        let currentZoomLevel = 5; 
         let chartData = [];
         const initialValue = 10;
         const dataPoints = 150;
-
+        
         const maPeriodFast = 10;
         const maPeriodSlow = 50;
+        
+        let currentTrend = 'Neutral'; 
+        
+        // ➡️ MODIFICADO: Probabilidad base de ganar (40%)
+        const baseWinChance = 0.40; 
+        // Probabilidad de ganar con tendencia (se mantiene en 70%)
+        const trendBonusChance = 0.70; 
 
-        let currentTrend = 'Neutral';
-        const trendBonusChance = 0.70;
 
         // Función para calcular la Media Móvil Simple (SMA)
         const calculateSMA = (data, period) => {
@@ -389,7 +360,7 @@
         const determineAndNotifyTrend = (maFastData, maSlowData) => {
             const latestFastMA = maFastData[maFastData.length - 1];
             const latestSlowMA = maSlowData[maSlowData.length - 1];
-
+            
             if (latestFastMA === null || latestSlowMA === null) {
                 currentTrend = 'Neutral';
                 trendNotificationElement.style.display = 'none';
@@ -412,32 +383,26 @@
             }
         };
 
-        // ➡️ NUEVA FUNCIÓN: Mostrar Notificación de Operación (Toast)
+        // Mostrar Notificación de Operación (Toast)
         const showTradeToast = (message, type) => {
             const toast = document.createElement('div');
             toast.className = `trade-toast toast-${type}`;
             toast.textContent = message;
-
-            // Añadir al contenedor (se apilará debido a flex-direction: column-reverse)
+            
             toastContainer.appendChild(toast);
 
-            // Eliminar el toast después de 5 segundos
             setTimeout(() => {
-                // Iniciar la transición de opacidad antes de la eliminación
                 toast.style.opacity = '0';
                 toast.addEventListener('transitionend', () => {
                     toast.remove();
                 });
-            }, 5000);
+            }, 5000); 
 
-            // Limitar la cantidad de toasts para evitar desbordamiento (opcional)
             const maxToasts = 5;
             while (toastContainer.children.length > maxToasts) {
-                // Eliminar el toast más antiguo (el que está más abajo en la lista HTML, que es el más arriba visualmente)
-                toastContainer.removeChild(toastContainer.children[0]);
+                toastContainer.removeChild(toastContainer.children[0]); 
             }
         };
-        // ⬅️ FIN NUEVA FUNCIÓN
 
         // Formateo de Dinero
         const formatMoney = (amount) => {
@@ -454,17 +419,28 @@
         const updateProbabilityDisplay = () => {
             const time = parseInt(tradeTimeSelect.value);
             const minutes = time >= 60 ? `${time / 60} min` : `${time} seg`;
-            document.querySelector('.prob-title').textContent = `Probabilidad de Ganar para ${minutes} (50/50)`;
+            
+            // ➡️ MODIFICADO: Mostrar probabilidad base de 40/60 en el panel
+            let probText = '40/60';
+            if(currentTrend === 'Alcista' || currentTrend === 'Bajista') {
+                // Si hay tendencia, el texto es más optimista (70%)
+                 probText = `${(trendBonusChance * 100).toFixed(0)}/${(100 - trendBonusChance * 100).toFixed(0)}`;
+            }
+
+            document.querySelector('.prob-title').textContent = `Probabilidad de Ganar para ${minutes} (${probText})`;
         };
 
         tradeTimeSelect.addEventListener('change', updateProbabilityDisplay);
 
 
-        // FUNCIÓN DE GANANCIA ALEATORIA (0.50 a 1.50 BOB)
+        // ➡️ MODIFICADO: FUNCIÓN DE GANANCIA ALEATORIA (0.50 a 2.00 BOB)
         const generateRandomProfit = () => {
-            const randomValue = Math.random() * (1.50 - 0.50);
-            return (randomValue + 0.50);
+            const minProfit = 0.50;
+            const maxProfit = 2.00;
+            const randomValue = Math.random() * (maxProfit - minProfit);
+            return (randomValue + minProfit);
         }
+        // ⬅️ FIN MODIFICACIÓN
 
         const updateBalance = async (amount, feedbackElement) => {
             if (!currentUserId) {
@@ -485,9 +461,8 @@
 
                 await update(userRef, { money: newBalance.toFixed(2) });
 
-                // El feedbackElement (tradeFeedback) solo se usa para el mensaje de FONDOS
                 if (feedbackElement) {
-                    feedbackElement.textContent = ''; // Limpiar el feedback inicial de éxito/gasto
+                    feedbackElement.textContent = ''; 
                 }
                 return true;
             } catch (error) {
@@ -499,8 +474,7 @@
         tradeForm.addEventListener('click', async (e) => {
             if (!e.target.classList.contains('trade-btn')) return;
             e.preventDefault();
-
-            // Feedback de "Procesando"
+            
             tradeFeedback.textContent = 'Procesando...';
             tradeFeedback.style.backgroundColor = 'var(--bg-dark-tertiary)';
 
@@ -514,17 +488,24 @@
                 tradeFeedback.textContent = "❌ Monto/Fondos inválidos. El monto mínimo es Bs 1.00.";
                 return;
             }
-
-            let actualWinChance = 0.50;
+            
+            // ➡️ MODIFICADO: Usar probabilidad base (40%)
+            let actualWinChance = baseWinChance; 
+            
             const isCallInUptrend = type === 'call' && currentTrend === 'Alcista';
             const isPutInDowntrend = type === 'put' && currentTrend === 'Bajista';
             let initialFeedback = '';
 
             if (isCallInUptrend || isPutInDowntrend) {
-                actualWinChance = trendBonusChance;
+                // Si hay tendencia, usamos el bonus (70% de ganar)
+                actualWinChance = trendBonusChance; 
                 initialFeedback = `🚀 ¡VENTAJA! Tendencia ${currentTrend} (${(actualWinChance * 100).toFixed(0)}%).`;
+            } else {
+                // Si no hay tendencia, mostramos la probabilidad base (40%)
+                initialFeedback = `⚖️ JUEGO LIMPIO. Probabilidad base (${(actualWinChance * 100).toFixed(0)}%).`;
             }
 
+            // Deducción inicial (el costo de la operación)
             const deductionSuccess = await updateBalance(-amount, tradeFeedback);
             if (!deductionSuccess) { return; }
 
@@ -534,7 +515,9 @@
             setTimeout(async () => {
                 const win = Math.random() < actualWinChance;
                 const randomProfit = generateRandomProfit();
-                const fixedLoss = 1.00;
+                
+                // ➡️ MODIFICADO: La pérdida es igual al monto invertido (100% de pérdida)
+                const fixedLoss = amount; 
 
                 let finalProfit = 0;
                 let resultText = '';
@@ -542,6 +525,7 @@
                 let toastType = '';
 
                 if (win) {
+                    // Ganancia = Inversión devuelta + Ganancia Aleatoria
                     const totalGain = amount + randomProfit;
                     await updateBalance(totalGain, null);
                     finalProfit = randomProfit;
@@ -549,15 +533,15 @@
                     toastMessage = `🎉 ¡GANASTE! +${formatMoney(finalProfit.toFixed(2))}`;
                     toastType = 'win';
                 } else {
-                    const amountRefund = amount - fixedLoss;
-                    await updateBalance(amountRefund, null);
-                    finalProfit = -fixedLoss;
+                    // Pérdida: Ya se descontó el 100% en la deducción inicial. 
+                    finalProfit = -fixedLoss; 
                     resultText = 'Pérdida';
-                    toastMessage = `😔 PERDISTE. -${formatMoney(fixedLoss.toFixed(2))}`;
+                    
+                    toastMessage = `😔 PERDISTE. -${formatMoney(fixedLoss.toFixed(2))}`; 
                     toastType = 'loss';
                 }
-
-                // ➡️ Mostrar la notificación dinámica
+                
+                // Mostrar la notificación dinámica
                 showTradeToast(toastMessage, toastType);
 
                 if (currentUserId) {
@@ -567,8 +551,8 @@
                         type: type,
                         result: resultText,
                         profit: finalProfit.toFixed(2),
-                        trend: currentTrend,
-                        winChance: (actualWinChance * 100).toFixed(0) + '%',
+                        trend: currentTrend, 
+                        winChance: (actualWinChance * 100).toFixed(0) + '%', 
                         timestamp: Date.now(),
                     };
                     push(historyRef, tradeRecord);
@@ -578,7 +562,7 @@
                 setTimeout(() => {
                     tradeFeedback.textContent = '';
                     tradeFeedback.style.backgroundColor = 'transparent';
-                }, 1000); // Limpiar el feedback inicial más rápido
+                }, 1000); 
 
             }, 3000);
         });
@@ -615,10 +599,10 @@
         const createRandomChart = () => {
             const ctx = document.getElementById('tickerChart').getContext('2d');
             const labels = Array.from({ length: dataPoints }, (_, i) => `T${i}`);
-
+            
             const maFastData = calculateSMA(chartData, maPeriodFast);
             const maSlowData = calculateSMA(chartData, maPeriodSlow);
-
+            
             determineAndNotifyTrend(maFastData, maSlowData);
 
             if (myChart) myChart.destroy();
@@ -640,7 +624,7 @@
                         {
                             label: `MA ${maPeriodFast}`,
                             data: maFastData,
-                            borderColor: 'rgb(255, 255, 0)',
+                            borderColor: 'rgb(255, 255, 0)', 
                             borderWidth: 1.5,
                             tension: 0.1,
                             pointRadius: 0,
@@ -717,14 +701,14 @@
 
                 chartData.shift();
                 chartData.push(Math.max(newValue, 5));
-
+                
                 const maFastData = calculateSMA(chartData, maPeriodFast);
                 const maSlowData = calculateSMA(chartData, maPeriodSlow);
 
                 myChart.data.datasets[0].data = chartData;
                 myChart.data.datasets[1].data = maFastData;
                 myChart.data.datasets[2].data = maSlowData;
-
+                
                 determineAndNotifyTrend(maFastData, maSlowData);
 
                 updateChartZoom();
@@ -735,11 +719,11 @@
         // ==================================
         // Lógica de Historial de Operaciones
         // ==================================
-
+        
         const loadTradeHistory = (uid) => {
             const historyRef = ref(dbInstance, `users/${uid}/history`);
             onValue(historyRef, (snapshot) => {
-                historyList.innerHTML = '';
+                historyList.innerHTML = ''; 
                 const historyData = [];
                 snapshot.forEach((childSnapshot) => {
                     const trade = childSnapshot.val();
@@ -755,19 +739,19 @@
                 const recentHistory = historyData.slice(0, 10);
 
                 recentHistory.forEach(trade => {
-                    const date = new Date(trade.timestamp).toLocaleString('es-ES', {
-                        hour: '2-digit', minute: '2-digit', second: '2-digit',
-                        day: '2-digit', month: 'short'
+                    const date = new Date(trade.timestamp).toLocaleString('es-ES', { 
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', 
+                        day: '2-digit', month: 'short' 
                     });
-
+                    
                     const isWin = trade.result === 'Ganancia';
                     const resultClass = isWin ? 'history-win' : 'history-loss';
-
+                    
                     const profitValue = parseFloat(trade.profit);
-                    const profitText = profitValue >= 0
-                        ? `+${formatMoney(profitValue)}`
+                    const profitText = profitValue >= 0 
+                        ? `+${formatMoney(profitValue)}` 
                         : `${formatMoney(profitValue)}`;
-
+                    
                     const strategyInfo = `(${trade.trend || 'Neutral'} | ${trade.winChance || '50%'})`;
 
                     const listItem = document.createElement('li');
@@ -817,12 +801,12 @@
             const inputAmount = document.getElementById('withdrawAmount');
             const amount = parseFloat(inputAmount.value);
             const currentBalance = parseFloat(userBalanceSpan.dataset.balance);
-
-            withdrawFeedback.textContent = '';
+            
+            withdrawFeedback.textContent = ''; 
 
             if (isNaN(amount) || amount <= 0) {
-                withdrawFeedback.textContent = `❌ Monto inválido. Debe ser mayor a Bs 0.`;
-                return;
+                 withdrawFeedback.textContent = `❌ Monto inválido. Debe ser mayor a Bs 0.`;
+                 return;
             }
             if (amount > currentBalance) {
                 withdrawFeedback.textContent = `❌ Fondos insuficientes. Saldo actual: ${formatMoney(currentBalance)}. No puedes retirar más de lo que tienes.`;
@@ -830,10 +814,10 @@
             }
 
             withdrawFeedback.textContent = 'Generando solicitud de WhatsApp...';
-
+            
             const whatsappNumber = '59178148213';
             const formattedAmount = amount.toFixed(2);
-
+            
             const message = `Quiero retirar ${formattedAmount} BOB.
 ID de usuario: ${currentUserId}
 Nombre: ${currentUserName}`;
@@ -844,7 +828,7 @@ Nombre: ${currentUserName}`;
             window.open(whatsappLink, '_blank');
 
             withdrawFeedback.textContent = `✅ Solicitud de ${formatMoney(amount)} generada. Abre WhatsApp para confirmar. El saldo se descontará al procesar tu solicitud.`;
-
+            
             withdrawForm.reset();
             setTimeout(() => closeModal(withdrawModal), 4000);
         });
@@ -865,11 +849,11 @@ Nombre: ${currentUserName}`;
         onAuthStateChanged(authInstance, (user) => {
             if (user) {
                 currentUserId = user.uid;
-                currentUserName = user.displayName || user.email.split('@')[0];
-
+                currentUserName = user.displayName || user.email.split('@')[0]; 
+                
                 userGreeting.textContent = `Hola, ${currentUserName}`;
                 setupDatabaseListener(user.uid);
-                loadTradeHistory(user.uid);
+                loadTradeHistory(user.uid); 
                 generateChartData();
                 createRandomChart();
             } else {
